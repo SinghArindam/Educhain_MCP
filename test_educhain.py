@@ -3,6 +3,8 @@ from educhain import Educhain, LLMConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
+from google import genai
+
 from pprint import pprint
 import json
 
@@ -19,6 +21,61 @@ gemini_model = ChatGoogleGenerativeAI(
 )
 gemini_config = LLMConfig(custom_model=gemini_model)
 client = Educhain(gemini_config)
+
+def get_gemini_response(prompt: str) -> str:
+    """
+    Get a response from the Gemini API for a given prompt.
+    
+    Args:
+        prompt (str): The input prompt to send to the Gemini API.
+    
+    Returns:
+        str: The response text from the Gemini API.
+    """
+    client = genai.Client()
+    response = client.models.generate_content(
+        model="gemini-2.5-flash", contents=prompt
+    )
+    return response.text
+
+def clean_and_parse_json(json_string):
+    """
+    Cleans a string by removing common unnecessary characters and escape sequences,
+    then attempts to parse it as JSON.
+
+    Args:
+        json_string: The string potentially containing JSON with extra characters.
+
+    Returns:
+        A Python dictionary/list if parsing is successful, None otherwise.
+        Raises a ValueError if the cleaned string is still not valid JSON.
+    """
+    # Remove common problematic characters and escape sequences
+    # This is a heuristic and might need adjustment based on specific input patterns.
+    cleaned_string = json_string.replace("'''", " ") \
+                                .replace('"""', " ") \
+                                .replace('```', " ") \
+                                .replace('`', " ") \
+                                .replace('**', " ") \
+                                .replace('*', " ") \
+                                .replace('\\n', ' ') \
+                                .replace('\\t', ' ') \
+                                .replace('\\"', '"') \
+                                .replace("\\'", "'")\
+                                .replace('\n', ' ') \
+                                .replace('\t', ' ') \
+                                .replace('\"', '"') \
+                                .replace("\'", "'")\
+                                .replace('\\', ' ').strip()  # Remove leading/trailing whitespace
+
+    # Attempt to parse the cleaned string as JSON
+    try:
+        return json.loads(cleaned_string)
+    except json.JSONDecodeError as e:
+        # If still not valid JSON, it's better to raise an error
+        # or provide more specific feedback than just returning None silently.
+        raise ValueError(f"Could not decode JSON after cleaning: {e}. Cleaned string: '{cleaned_string}'")
+
 
 def generate_mcqs(topic: str,
                   level: str = "Beginner",
@@ -38,12 +95,10 @@ def generate_mcqs(topic: str,
     questions = advanced_mcq.model_dump()
     return questions["questions"]
 
-
 def generate_lesson_plan(topic: str,
+                         duration: int = 60,
                          grade_level: str = "Beginner",
-                         duration: str = "60 minutes",
-                         learning_objectives = ["Understanding the process", "Identifying key components"],
-                         client=client) -> dict:
+                         learning_objectives = ["Understanding the process", "Identifying key components"]) -> dict:
     """
     Build a structured lesson plan for <topic> at <level>.
     """
@@ -55,11 +110,47 @@ def generate_lesson_plan(topic: str,
         learning_objectives=learning_objectives
     )
     plan = detailed_lesson.model_dump_json()
-    pprint(plan)  # Print the raw JSON string for debugging
-    print(type(plan))  # Should be a string
-    plan_json = json.loads(plan)  # Convert JSON string to Python dict
-    print(type(plan_json))
-    return plan_json
+    
+    plan_cleaned = clean_and_parse_json(plan)
+    pprint(plan_cleaned)  # Print the cleaned JSON object for debugging
+    print(type(plan_cleaned))  # Should be a dict or list
+    with open("lesson_plan.json", "w") as f:
+        json.dump(plan_cleaned, f, indent=4)
+    # content = f"""
+    # Convert the given string into a valid JSON object, ensuring no unnecessary escape characters or extraneous backticks (`) or triple quotes or other inconsistencies remain.
+    
+    # {plan}
+    
+    # Return valid JSON object only.    
+    # """
+    # plan_formatted = get_gemini_response(content)
+    # pprint(plan_formatted)
+    # print(type(plan_formatted))  # Should be a string
+    # plan_json = json.loads(plan_formatted)  # Convert JSON string to Python dict
+    # print(type(plan_json))
+    return plan_cleaned
+
+# def generate_lesson_plan(topic: str,
+#                          grade_level: str = "Beginner",
+#                          duration: str = "60 minutes",
+#                          learning_objectives = ["Understanding the process", "Identifying key components"],
+#                          client=client) -> dict:
+#     """
+#     Build a structured lesson plan for <topic> at <level>.
+#     """
+#     # Advanced lesson plan with specific parameters
+#     detailed_lesson = client.content_engine.generate_lesson_plan(
+#         topic=topic,
+#         duration=duration,
+#         grade_level=grade_level,
+#         learning_objectives=learning_objectives
+#     )
+#     plan = detailed_lesson.model_dump_json()
+#     pprint(plan)  # Print the raw JSON string for debugging
+#     print(type(plan))  # Should be a string
+#     plan_json = json.loads(plan)  # Convert JSON string to Python dict
+#     print(type(plan_json))
+#     return plan_json
 
 # def generate_lesson_plan(topic: str, grade_level: str = "Middle School", duration: str = "60 minutes") -> Dict[str, Any]:
 #     """
