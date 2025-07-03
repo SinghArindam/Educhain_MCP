@@ -1,0 +1,11 @@
+
+res = generate_mcqs("Python Programming", "Intermediate", 5)
+{res}
+
+
+res2 = generate_lesson_plan("Python Programming", "Intermediate", "60 minutes", ["Understanding Python syntax", "Writing basic functions"])
+{res2}
+
+
+res3 = generate_flashcards("Python Programming", "Advanced", 5)
+{res3}
