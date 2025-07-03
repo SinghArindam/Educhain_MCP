@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Dict, Any
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from educhain import Educhain, LLMConfig
@@ -29,23 +30,46 @@ def generate_mcqs(topic: str, level: str = "Beginner", num: int = 5) -> list[dic
     ).model_dump()["questions"]
 
 @mcp.tool()
-def generate_lesson_plan(
-    topic: str,
-    grade_level: str = "Beginner",
-    duration: str = "60 minutes",
-    learning_objectives: list = ["Understanding the process", "Identifying key components"],
-) -> dict:
+def generate_lesson_plan(topic: str, grade_level: str, duration: int) -> Dict[str, Any]:
     """
-    Build a structured lesson plan for <topic> at <level>.
+    Generates a lesson plan for a given topic, grade level, and duration using EduChain.
+    
+    Args:
+        topic (str): The subject or topic of the lesson (e.g., "Photosynthesis").
+        grade_level (str): The target grade level (e.g., "Grade 5").
+        duration (int): Duration of the lesson in minutes (e.g., 60).
+    
+    Returns:
+        Dict[str, Any]: A structured lesson plan with objectives, activities, and assessments.
     """
-    return json.loads(
-        client.content_engine.generate_lesson_plan(
+    try:
+        # Call EduChain's lesson plan generator
+        lesson_plan = client.content_engine.generate_lesson_plan(
             topic=topic,
-            duration=duration,
             grade_level=grade_level,
-            learning_objectives=learning_objectives,
-        ).model_dump_json()
-    )
+            duration=duration
+        )
+        return {
+            "status": "success",
+            "lesson_plan": {
+                "topic": topic,
+                "grade_level": grade_level,
+                "duration": duration,
+                "objectives": lesson_plan["objectives"],
+                "activities": lesson_plan["activities"],
+                "assessments": lesson_plan["assessments"]
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to generate lesson plan: {str(e)}"
+        }
+    
+@mcp.tool()
+def generate_flashcards(topic: str, level: str = "Beginner", num: int = 5) -> list[dict]:
+    mcqs = generate_mcqs(topic, level, num)
+    return [{"question": q["question"], "answer": q["answer"]} for q in mcqs]
 
 if __name__ == "__main__":
     mcp.run()
