@@ -3,6 +3,9 @@ from educhain import Educhain, LLMConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
+from pprint import pprint
+import json
+
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
@@ -33,7 +36,7 @@ def generate_mcqs(topic: str,
         difficulty_level=level,
     )
     questions = advanced_mcq.model_dump()
-    return questions
+    return questions["questions"]
 
 
 def generate_lesson_plan(topic: str,
@@ -51,8 +54,10 @@ def generate_lesson_plan(topic: str,
         grade_level=grade_level,
         learning_objectives=learning_objectives
     )
-    plan = detailed_lesson.model_dump()
-    return plan
+    plan = detailed_lesson.model_dump_json()
+    plan_json = json.loads(plan)  # Convert JSON string to Python dict
+    print(type(plan_json))
+    return plan_json
 
 def generate_flashcards(topic: str,
                         level: str = "Beginner",
@@ -77,14 +82,23 @@ def generate_flashcards(topic: str,
     return flashcards
 
 # res = generate_mcqs("Python Programming", "Intermediate", 5)
-# print(res)
+# # print(res)
 
-# res2 = generate_lesson_plan("Python Programming", "Intermediate", "60 minutes", ["Understanding Python syntax", "Writing basic functions"])
-# print(res2)
+res2 = generate_lesson_plan("Python Programming", "Intermediate", "60 minutes", ["Understanding Python syntax", "Writing basic functions"])
+# pprint(res2)
 
-res3 = generate_flashcards("Python Programming", "Advanced", 5)
-print(res3)
+# with open('res2.txt', 'w') as file:
+#     file.write(str(res2))
 
+with open("res2.json", "w") as f:
+    json.dump(res2, f, indent=4) # indent=4 for pretty printing
+
+print("Formatted content successfully written to 'res2.json'")
+
+# res3 = generate_flashcards("Python Programming", "Advanced", 5)
+# print(res3)
+
+# # formatting the output for better readability
 # formatted_content = """
 # res = generate_mcqs("Python Programming", "Intermediate", 5)
 # {res}
@@ -97,6 +111,9 @@ print(res3)
 # res3 = generate_flashcards("Python Programming", "Advanced", 5)
 # {res3}
 # """
+
+# print("Formatted content:")
+# print(formatted_content)
 
 # # Write formatted version to another file
 # with open('educhain_output_formatted.txt', 'a+') as file:
