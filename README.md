@@ -16,14 +16,15 @@ The educhain mcp server talks to Google’s **Gemini 2.5-flash** model through `
 
 ```
 .
-├── educhain_mcp_server_final.py    # Current production server (recommended)
-├── claude_desktop_config.json      # Claude desktop config
-├── .env.example                    # Example file for .env
-├── test_educhain.py                # Unit-style test script / playground 
-├── trials.md                       # trials
-├── Readme.md                       # Readme
-├── res2.json / res2.txt            # Sample lesson-plan output
-└── requirements.txt                # Generated with `pip freeze`
+├── educhain_mcp_server_final.py                # Current production server (recommended)
+├── documented_educhain_mcp_server_final.py     # Documentation
+├── claude_desktop_config.json                  # Claude desktop config
+├── .env.example                                # Example file for .env
+├── test_educhain.py                            # Unit-style test script / playground 
+├── trials.md                                   # trials
+├── Readme.md                                   # Readme
+├── res2.json / res2.txt                        # Sample lesson-plan output
+└── requirements.txt                            # Generated with `pip freeze`
 ...
 ```
 
@@ -116,7 +117,13 @@ It prints MCQs, a full lesson plan and flashcards to the console and dumps the p
 * **Environment key errors** – Forgetting to export `GEMINI_API_KEY` raised a runtime exception; wrapped client init in a try/except and logged helpful hints.
 * **Claude permission prompts repeating** – Supplying `@mcp.tool()` docstrings and returning consistent shapes fixed the warnings.
 
-## 8. Dependencies (trimmed)
+## 9. Documentation
+Inside
+```
+documented_educhain_mcp_server_final.py
+```
+
+## 10. Dependencies (trimmed)
 
 ```
 Python 3.11
