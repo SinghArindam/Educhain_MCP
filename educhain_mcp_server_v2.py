@@ -5,6 +5,9 @@ from educhain import Educhain, LLMConfig
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 
+from pprint import pprint
+import json
+
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
@@ -40,7 +43,7 @@ def generate_mcqs(topic: str,
         difficulty_level=level,
     )
     questions = advanced_mcq.model_dump()
-    return questions
+    return questions["questions"]
 
 # 4) ---------- TOOL #2 : Lesson Plan Generator ----------
 @mcp.tool()
@@ -59,8 +62,27 @@ def generate_lesson_plan(topic: str,
         grade_level=grade_level,
         learning_objectives=learning_objectives
     )
-    plan = detailed_lesson.model_dump()
-    return plan
+    plan = detailed_lesson.model_dump_json()
+    plan_json = json.loads(plan)  # Convert JSON string to Python dict
+    # print(type(plan_json))
+    return plan_json
+# def generate_lesson_plan(topic: str,
+#                          grade_level: str = "Beginner",
+#                          duration: str = "60 minutes",
+#                          learning_objectives = ["Understanding the process", "Identifying key components"],
+#                          client=client) -> dict:
+#     """
+#     Build a structured lesson plan for <topic> at <level>.
+#     """
+#     # Advanced lesson plan with specific parameters
+#     detailed_lesson = client.content_engine.generate_lesson_plan(
+#         topic=topic,
+#         duration=duration,
+#         grade_level=grade_level,
+#         learning_objectives=learning_objectives
+#     )
+#     plan = detailed_lesson.model_dump_json()
+#     return plan
 
 # 5) ---------- (BONUS) TOOL #3 : Flashcard Generator ----------
 # @mcp.tool()
