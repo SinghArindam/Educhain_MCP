@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "educhain": {
+      "command": "C:/Users/hp/Videos/task1/.venv/Scripts/python.exe",
+      "args": [
+        "C:/Users/hp/Videos/task1/educhain_mcp_server_final.py"
+      ]
+    }
+  }
+}
